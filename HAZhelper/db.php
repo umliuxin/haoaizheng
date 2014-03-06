@@ -390,7 +390,7 @@ array('作文','论文')
 					break;
 				default:
 					# code...
-					$returnStr="Invilad Response
+					$returnStr="invalid Response
 1.谁是卧底
 2.捉鬼
 3.双杀
@@ -413,14 +413,12 @@ array('作文','论文')
 					break;
 				case 3:
 					# code...
-					$returnStr="GO TO 查看统计
-应该有统计，看看你水平如何，但是还没有";
-					//set_talk($userid,23);
+					$returnStr=seestat($userid);
 					break;
 				
 				default:
 					# code...
-					$returnStr="Invilad Response
+					$returnStr="iNvalid Response
 1.创建游戏
 2.加入游戏
 3.查看统计
@@ -446,7 +444,7 @@ array('作文','论文')
 				$returnStr=create_spy_game($text,3,$userid,$spyset);
 			}
 			else{
-				$returnStr="Invilad Response,请输入参与游戏的人数（3-15人）";
+				$returnStr="invaliD Response,请输入参与游戏的人数（3-15人）";
 			}
 		}
 		else if($talk==22){
@@ -467,7 +465,8 @@ array('作文','论文')
 	echo $sql."<br>";
 	$sqlquery=mysql_fetch_row(mysql_query($sql));
 	if($sqlquery[0]==1){
-		$returnStr=$sqlquery[1]."
+		$returnStr=$sqlquery[1].
+"
 1.创建游戏
 2.加入游戏
 3.查看统计
@@ -531,12 +530,15 @@ function owner_in_game($text,$userid,$room_id,$spyset){
 							if($spyarray[$j]==$playerarray[$i])$isspy=1;
 						}
 						if($isspy==1){
-							$sqlstr="卧底获胜，你是卧底";
+							$sqlstr="你又获胜了!你是卧底,卧底获胜!";
+						$sql="UPDATE User SET talk=2,messageflag=1,message='".$sqlstr."',game1_t=game1_t+1,game1_w=game1_w+1 WHERE wx_id='".$playerarray[$i]."'";
+
 						}
 						else{
-							$sqlstr="卧底获胜，你是正常人";
+							$sqlstr="你又输了!你是正常人,卧底获胜!";
+						$sql="UPDATE User SET talk=2,messageflag=1,message='".$sqlstr."',game1_t=game1_t+1 WHERE wx_id='".$playerarray[$i]."'";
+
 						}
-						$sql="UPDATE User SET talk=2,messageflag=1,message='".$sqlstr."' WHERE wx_id='".$playerarray[$i]."'";
 						mysql_query($sql);
 						
 					}
@@ -561,12 +563,14 @@ function owner_in_game($text,$userid,$room_id,$spyset){
 							if($spyarray[$j]==$playerarray[$i])$isspy=1;
 						}
 						if($isspy==1){
-							$sqlstr="正常人获胜，你是卧底";
+							$sqlstr="你又输了!你是卧底,正常人获胜!";
+							$sql="UPDATE User SET talk=2,messageflag=1,message='".$sqlstr."',game1_t=game1_t+1 WHERE wx_id='".$playerarray[$i]."'";
 						}
 						else{
-							$sqlstr="正常人获胜，你是正常人";
+							$sqlstr="你又获胜了!你是正常人,正常人获胜!";
+							$sql="UPDATE User SET talk=2,messageflag=1,message='".$sqlstr."',game1_t=game1_t+1,game1_w=game1_w+1 WHERE wx_id='".$playerarray[$i]."'";
 						}
-						$sql="UPDATE User SET talk=2,messageflag=1,message='".$sqlstr."' WHERE wx_id='".$playerarray[$i]."'";
+						
 						mysql_query($sql);
 
 					}
@@ -758,7 +762,7 @@ function join_spy_game($text,$userid,$spyset){
 
 						}
 						else{
-							$sql="UPDATE Spygame SET player_id='".$player_id."', num_part=".$num_part." ,isEnd=2,spy_id='".$spy_id."' WHERE isEnd=0 and num_id=".$text;
+							$sql="UPDATE Spygame SET player_id='".$player_id."', num_part=".$num_part.",spy_id='".$spy_id."' WHERE isEnd=0 and num_id=".$text;
 						}
 					}
 					else{
@@ -821,6 +825,35 @@ function random_index($num,$total){
 		} while ($opt1==$opt3||$opt2==$opt3);
 		return $opt1."#$#".$opt2."#$#".$opt3;
 	}
+}
+function seestat($userid){
+	$sql="SELECT game1_t,game1_w FROM User WHERE wx_id='".$userid."'";
+	$result=mysql_fetch_row(mysql_query($sql));
+	$lose=$result[0]-$result[1];
+	$cpl=round( $result[1]/$result[0] * 100 , 2) . "％";
+	if($result[0]==0){
+		$returnStr="谁是卧底游戏统计
+你还没有进行游戏!
+1.创建游戏
+2.加入游戏
+3.查看统计
+0.回到首页
+发送 help 查看帮助";
+	}
+	else{
+		$returnStr="谁是卧底游戏统计
+游戏数:".$result[0]."
+获胜:".$result[1]."
+失败:".$lose."
+胜率:".$cpl." 
+1.创建游戏
+2.加入游戏
+3.查看统计
+0.回到首页
+发送 help 查看帮助";
+	}
+	return $returnStr;
+	
 }
 
  ?>
